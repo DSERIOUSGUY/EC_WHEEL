@@ -1,6 +1,8 @@
 # 2021 ECWHeel©. All rights reserved. 
 
 from controller import Robot
+import numpy as np
+import matplotlib.pyplot as plt
 
 #The range of sensor when it is most reliable due to the inherent noise
 DISTANCE_UPPER_BOUND = 1.3
@@ -22,6 +24,19 @@ sensors.append(robot.getDevice("Sharp's IR sensor GP2D120 FrontRight"))
 sensors.append(robot.getDevice("Sharp's IR sensor GP2D120 Right"))
 sensors.append(robot.getDevice("Sharp's IR sensor GP2D120 Back"))
 sensors.append(robot.getDevice("Sharp's IR sensor GP2D120 Left"))
+
+#Measuring real distance to from the sensors with no noise for testing
+distanceFromFrontLeft = robot.getDevice("real distance from Front Left")
+distanceFromFrontLeft.enable(TIME_STEP)
+distanceFromFrontRight = robot.getDevice("real distance from Front Right")
+distanceFromFrontRight.enable(TIME_STEP)
+
+#Data Collection Variables
+testingArray1 = np.zeros((150, 2))
+testingArray2 = np.zeros((150, 2))
+testingArray3 = np.zeros((150, 1))
+testingArray4 = np.zeros((150, 1))
+count = 0
 
 for i in sensors:
     i.enable(TIME_STEP)
@@ -120,8 +135,88 @@ while robot.step(TIME_STEP) != -1:
     rightspeed = 0  
     sensorData = getSensorData()
     speeds = trackpad(sensorData)
-
-    #for data in sensorDataInMeters:
-    #    print(str(data))
-    
     setActuators(speeds)
+
+    #print("Left Wheel Velocity: " + str(wheels[0].getVelocity()))
+    #print("Rigth Wheel Velocity: " + str(wheels[1].getVelocity()))
+    #print("Left Whell Acceleration: " + str(wheels[0].getAcceleration()))
+    #print("Right Wheel Acceleration: " + str(wheels[1].getAcceleration()))
+
+    #### Data Collection for first 300 ticks and Plot making ####
+    """
+    print("Left Sensor Value: " + str(sensorData[0]))
+    print("Actual Front Left Sensor Distance: " + str(distanceFromFrontLeft.getValue()))
+
+    print("Right Sensor Value: " + str(sensorData[1]))
+    print("Actual Front Right Sensor Distance: " + str(distanceFromFrontRight.getValue()))
+
+    arrange = np.arange(0, 150, dtype=np.float32)
+    j = 1
+    while (j < 150):
+        arrange[j] = arrange[j]/64
+        j += 1
+
+    if (count < 150):
+        if (sensorData[0] < 1.3):
+            testingArray1[count][0] = sensorData[0]
+        if (distanceFromFrontLeft.getValue() < 5):
+            testingArray1[count][1] = distanceFromFrontLeft.getValue()
+        if (sensorData[1] < 1.3):
+            testingArray2[count][0] = sensorData[1]
+        if (distanceFromFrontRight.getValue() < 5):
+            testingArray2[count][1] = distanceFromFrontRight.getValue() 
+        if (count == 0):
+            testingArray3[count] = 2.0
+            testingArray4[count] = 2.0
+        else:
+            testingArray3[count] = wheels[0].getVelocity()
+            testingArray4[count] = wheels[1].getVelocity()
+
+        count += 1
+
+    if (count == 150):
+
+        testingArray1[ testingArray1==0 ] = np.nan
+        testingArray2[ testingArray2==0 ] = np.nan
+
+        fig1 = plt.figure()
+        ax = fig1.add_subplot(111)
+
+        ax.set(title="Actual Distance vs FrontLeft Sensor Distance", xlabel="x", ylabel="y")
+        ax.plot(arrange, testingArray1[:,0],   label='Data from FrontLeft sensor')
+        ax.plot(arrange, testingArray1[:,1],   label='Real-world measurements')
+
+        fig, ax = plt.subplots(constrained_layout=True)
+        
+        line1 = ax.plot(arrange, testingArray1[:,0], label='Measured Distance')
+        line1 = ax.plot(arrange, testingArray1[:,1], label='Actual Distance', linestyle='dashed')
+        ax.set(title="Wheel Rotation Speed vs Sensor Measured Distance (Left)", xlabel="Time (s)")
+
+        line3 = ax.plot(arrange, testingArray3, label='Velocity')
+        ax.set_ylabel('Distance (m)', color = 'black')
+        
+        secax = ax.secondary_yaxis('right')
+        secax.set_ylabel('Wheel revolution speed (Rad/s)')
+        secax.set_color('green')
+        #ax[1].set(title="Left Wheel Velocity", xlabel="Time Step", ylabel="Rad/s")
+        ax.legend()
+        plt.savefig("Figure_1.png")
+
+        fig, ax = plt.subplots(constrained_layout=True)
+        
+        line1 = ax.plot(arrange, testingArray2[:,0], label='Measured Distance')
+        line1 = ax.plot(arrange, testingArray2[:,1], label='Actual Distance', linestyle='dashed')
+        ax.set(title="Wheel Rotation Speed vs Sensor Measured Distance (Right)", xlabel="Time (s)")
+
+        line3 = ax.plot(arrange, testingArray4, label='Velocity')
+        ax.set_ylabel('Distance (m)', color = 'black')
+        
+        secax = ax.secondary_yaxis('right')
+        secax.set_ylabel('Wheel revolution speed (Rad/s)')
+        secax.set_color('green')
+        #ax[1].set(title="Left Wheel Velocity", xlabel="Time Step", ylabel="Rad/s")
+        ax.legend()
+        plt.savefig("Figure_2.png")
+        plt.show()
+    """
+    
