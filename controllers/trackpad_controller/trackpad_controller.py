@@ -218,5 +218,7 @@ while robot.step(TIME_STEP) != -1:
         ax.legend()
         plt.savefig("Figure_2.png")
         plt.show()
+
     """
+    
     
