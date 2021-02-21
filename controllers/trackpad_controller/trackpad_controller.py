@@ -3,7 +3,6 @@
 from controller import Robot
 import numpy as np
 import matplotlib.pyplot as plt
-
 #The range of sensor when it is most reliable due to the inherent noise
 DISTANCE_UPPER_BOUND = 1.3
 DISTANCE_LOWER_BOUND = 0.7
@@ -31,6 +30,11 @@ distanceFromFrontLeft.enable(TIME_STEP)
 distanceFromFrontRight = robot.getDevice("real distance from Front Right")
 distanceFromFrontRight.enable(TIME_STEP)
 
+
+#Queue for averaging sensor data
+queue = []
+counter = 0
+
 #Data Collection Variables
 testingArray1 = np.zeros((150, 2))
 testingArray2 = np.zeros((150, 2))
@@ -55,36 +59,48 @@ mouse = robot.getMouse()
 mouse.enable(TIME_STEP)
 
 def trackpad(sensorData):
-    mousestate = mouse.getState()
+    y = 2
+    x = 1
+    #                          ---REIMPLEMENT THIS LATER---
+    #mousestate = mouse.getState() 
    
-    x = mousestate.u 
-    y = -mousestate.v
+    #x = mousestate.u 
+    #y = -mousestate.v
+    
+    #                                --- END --- 
+    
     leftspeed = 0.0
     rightspeed = 0.0
 
     if y >= -x and y >= x - 1:
         #Go forward
         #Checking if sensors have detected obstacles and adjusting the max forward speed
-        leftspeed = 2.0
-        rightspeed = 2.0
+        mindist = min(sensorData[0], sensorData[1])
         #Checking the Left sensor facing forwards for if there is an obstacle in the range
-        if (sensorData[0] < DISTANCE_UPPER_BOUND and sensorData[0] > DISTANCE_LOWER_BOUND):
-            leftspeed = 2.0 * ((sensorData[0] - DISTANCE_LOWER_BOUND)/RANGE)
-            rightspeed = 2.0 * ((sensorData[0] - DISTANCE_LOWER_BOUND)/RANGE)
+        if (mindist < DISTANCE_UPPER_BOUND and mindist > DISTANCE_LOWER_BOUND):
+            leftspeed = 2.0 * ((mindist - DISTANCE_LOWER_BOUND)/RANGE)
+            rightspeed = 2.0 * ((mindist - DISTANCE_LOWER_BOUND)/RANGE)
         #If the sensor value is lower then the lower bound,
         #Wheelchair cannot move forward, only any other direction 
-        elif (sensorData[0] < DISTANCE_LOWER_BOUND):
+        elif (mindist <= DISTANCE_LOWER_BOUND):
+            print('YOYOYOYOYO1')
             leftspeed = 0.0
             rightspeed = 0.0
+        else:
+            leftspeed = 2.0
+            rightspeed = 2.0
+            
+        """
         #Checking the Right sensor facing forward for if there is an obstacle in the range
-        elif (sensorData[1] < DISTANCE_UPPER_BOUND and sensorData[1] > DISTANCE_LOWER_BOUND):
+        if (sensorData[1] < DISTANCE_UPPER_BOUND and sensorData[1] > DISTANCE_LOWER_BOUND):
             leftspeed = 2.0 * ((sensorData[1] - DISTANCE_LOWER_BOUND)/RANGE)
             rightspeed = 2.0 * ((sensorData[1] - DISTANCE_LOWER_BOUND)/RANGE)
         elif (sensorData[1] < DISTANCE_LOWER_BOUND):
+            print('YOYOYOYOYO2')
             leftspeed = 0.0
             rightspeed = 0.0
         print("forward")
-     
+        """
     if y < -x and y < x - 1:
         #Go back
         leftspeed = -2.0
@@ -131,11 +147,30 @@ def setActuators(speeds):
     wheels[1].setVelocity(speeds[1])
 
 while robot.step(TIME_STEP) != -1:
-    leftspeed = 0
-    rightspeed = 0  
+    counter += 1
+    print(counter)
     sensorData = getSensorData()
-    speeds = trackpad(sensorData)
-    setActuators(speeds)
+    if len(queue) < 5: 
+        leftspeed = 0
+        rightspeed = 0  
+
+        queue.append(sensorData)
+        speeds = trackpad(sensorData)
+        setActuators(speeds)
+    
+    else:
+        averages = np.zeros(len(queue[0]))
+        for i in range(len(averages)):
+            for j in range(len(queue)):
+                averages[i] += queue[j][i]
+            averages[i] = averages[i] / len(queue)
+            sensorData[i] = (sensorData[i] * 0.5) + (averages[i] * 0.5)
+            
+        speeds = trackpad(sensorData)
+        setActuators(speeds)
+        queue.pop(0)
+        queue.append(sensorData)
+    
 
     #print("Left Wheel Velocity: " + str(wheels[0].getVelocity()))
     #print("Rigth Wheel Velocity: " + str(wheels[1].getVelocity()))
@@ -143,12 +178,12 @@ while robot.step(TIME_STEP) != -1:
     #print("Right Wheel Acceleration: " + str(wheels[1].getAcceleration()))
 
     #### Data Collection for first 300 ticks and Plot making ####
-    """
-    print("Left Sensor Value: " + str(sensorData[0]))
-    print("Actual Front Left Sensor Distance: " + str(distanceFromFrontLeft.getValue()))
+    
+    #print("Left Sensor Value: " + str(sensorData[0]))
+    #print("Actual Front Left Sensor Distance: " + str(distanceFromFrontLeft.getValue()))
 
-    print("Right Sensor Value: " + str(sensorData[1]))
-    print("Actual Front Right Sensor Distance: " + str(distanceFromFrontRight.getValue()))
+    #print("Right Sensor Value: " + str(sensorData[1]))
+    #print("Actual Front Right Sensor Distance: " + str(distanceFromFrontRight.getValue()))
 
     arrange = np.arange(0, 150, dtype=np.float32)
     j = 1
@@ -218,7 +253,7 @@ while robot.step(TIME_STEP) != -1:
         ax.legend()
         plt.savefig("Figure_2.png")
         plt.show()
-
-    """
+        
+    
     
     
