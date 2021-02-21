@@ -2,10 +2,11 @@
 WorldInfo {
   basicTimeStep 8
   coordinateSystem "NUE"
+  randomSeed 420
 }
 Viewpoint {
-  orientation -0.2513910975535196 -0.9429463683998287 -0.21829947868103405 1.4884932645576814
-  position -8.685651570414272 4.358605376781169 -1.8552363415586919
+  orientation 0.1260534880707201 0.9836526470908044 0.1286001089286398 4.675913292772552
+  position -5.847242811100029 2.028324941019301 -7.056570053503522
 }
 Floor {
   size 100 100
@@ -14,16 +15,43 @@ Floor {
   }
 }
 SolidBox {
-  translation 0 0 -5.49
+  translation 0 1.01 -5
+  appearance PBRAppearance {
+    baseColorMap ImageTexture {
+      url [
+        "C:/Users/kiliu/Desktop/webots/projects/controllers/trackpad_controller/Figure_1.png"
+      ]
+    }
+    roughness 0.5
+    metalness 0
+  }
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
 DEF CHAIR_FULL Robot {
-  translation -0.524167 0.198216 0.276499
-  rotation 2.18556e-08 1 -2.18556e-08 -1.5708053071795867
+  translation -0.219942 0.188216 -8.2635
+  rotation 2.18558e-08 -1 2.18558e-08 -1.5707853071795865
   children [
+    DistanceSensor {
+      translation -0.15 0.06 0.57
+      rotation 0 1 0 3.14159
+      name "real distance from Front Left"
+      lookupTable [
+        0 0 0
+        1000 1000 0
+      ]
+    }
+    DistanceSensor {
+      translation -0.15 0.06 -0.0400001
+      rotation 0 1 0 3.14159
+      name "real distance from Front Right"
+      lookupTable [
+        0 0 0
+        1000 1000 0
+      ]
+    }
     SharpGP2Y0A02YK0F {
       translation -0.09 0.03 7.34642e-08
       rotation 0 1 0 1.5708
@@ -104,7 +132,7 @@ DEF CHAIR_FULL Robot {
         }
       ]
       endPoint DEF WHEEL_001 Solid {
-        translation 0.3669994913008567 0.08870280366517809 -0.05000101389543987
+        translation 0.3669994913008567 0.08870280366517809 -0.050001013895439844
         rotation 0.5773297588415843 -0.5773871231311518 -0.5773339238242025 4.188842747054322
         children [
           Shape {
@@ -151,8 +179,8 @@ DEF CHAIR_FULL Robot {
         }
       ]
       endPoint DEF WHEEL Solid {
-        translation 0.36859973983582695 0.08920183237189501 0.6009410781597357
-        rotation 0.5773684831874231 0.5773112621315253 0.5773710602705678 4.188732046461812
+        translation 0.36859973983582695 0.089201832371895 0.6009410781597357
+        rotation 0.5773684831874232 0.5773112621315252 0.577371060270568 4.188732046461812
         children [
           Shape {
             appearance Appearance {
@@ -215,7 +243,7 @@ DEF CHAIR_FULL Robot {
     translation 0 0.34 0.27
     children [
       Box {
-        size 1 1 0.5
+        size 1 1.06 0.5
       }
     ]
   }
@@ -225,7 +253,7 @@ DEF CHAIR_FULL Robot {
   controller "trackpad_controller"
 }
 Robot {
-  translation 1.37 1.27 -3.89
+  translation 1.37 1.27 -7.41
   rotation 0 1 0 1.5708
   children [
     Group {
