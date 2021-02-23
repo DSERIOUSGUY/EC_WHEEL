@@ -97,7 +97,7 @@ DEF CHAIR_FULL Robot {
       }
       device [
         RotationalMotor {
-          name "leftWheel"
+          name "rightWheel"
         }
       ]
       endPoint DEF WHEEL_001 Solid {
@@ -144,7 +144,7 @@ DEF CHAIR_FULL Robot {
       }
       device [
         RotationalMotor {
-          name "rightWheel"
+          name "leftWheel"
         }
       ]
       endPoint DEF WHEEL Solid {
