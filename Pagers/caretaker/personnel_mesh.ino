@@ -44,6 +44,7 @@ void sendMessage() {
   display.println("Sent request!");
   Serial.println("Sent request!");
    display.display();
+   delay(2000);
   }
   taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 1 ));
 }
@@ -79,7 +80,7 @@ void receivedCallback( uint32_t from, String &msg )
       {
       display.clearDisplay();
       display.setCursor(0,16);
-      display.println("Welcome"); //returning to title screen
+      display.println("\t EC Wheel"); //returning to title screen
       display.display();
       return;
       }
@@ -160,10 +161,6 @@ void setup() {
   Serial.print("Node ID: ");
   Serial.println(nodeId);
 
-  display.clearDisplay();
-  display.setCursor(0,16);
-  display.println("Welcome");
-  display.display();
    
   mesh.onReceive(&receivedCallback);
   mesh.onNewConnection(&newConnectionCallback);
@@ -193,6 +190,10 @@ void loop()
       }
       else
       {  
+  display.clearDisplay();
+  display.setCursor(20,16);
+  display.println("\t EC Wheel \t");
+  display.display();      
   mesh.update(); 
       }
 }
