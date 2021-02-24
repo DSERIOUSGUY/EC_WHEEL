@@ -17,7 +17,7 @@ Adafruit_SSD1306 display(width,height, &Wire, reset);
 Scheduler userScheduler; 
 painlessMesh  mesh;
 uint32_t nodeId;
-String userName = "User A";
+String userName = "User B";
 //------------Misc Definitions------------//
 #define ping 5
 uint8_t postCode = 0;
@@ -62,20 +62,22 @@ void receivedCallback( uint32_t from, String &msg ) {
     return;
     }
   //check if the received message is a request
-  if(msg.substring(0) == "A")
+  if(msg.substring(0,27) == "Additional help requested by")
   {
-     {
-    for(int i = 0; i<100; i++)
-      {if(digitalRead(ping) == LOW) //gives user time (10s) to respond to the request
+     {int state;
+    for(int i = 0; i<1000; i++)
+      { state = digitalRead(ping);
+        if(digitalRead(ping)==LOW) //gives user time (10s) to respond to the request
         break;  //if so, breaks from the for loop
-      delay(100);
+        delay(10);
       }
-      if(digitalRead(ping) == HIGH) //checking if button is pressed
+      
+      if(state) //checking if button is pressed
       {
-    display.clearDisplay();
-    display.setCursor(0,16);
-    display.println("Welcome"); //returning to title screen
-    display.display();
+      display.clearDisplay();
+      display.setCursor(0,16);
+      display.println("Welcome"); //returning to title screen
+      display.display();
       return;
       }
 
@@ -88,12 +90,14 @@ void receivedCallback( uint32_t from, String &msg ) {
    reply = "The answered request from ";
    reply += userName;
    mesh.sendSingle(from,reply);
-   Serial.print("reply sent!");
-    
+   Serial.println("reply sent!");
+    display.clearDisplay();
+    display.setCursor(0,16);
+    display.println("reply sent!"); //returning to title screen
+    display.display();
+   
   }
   }
-
-
 }
 void newConnectionCallback(uint32_t nodeId) {
     Serial.printf("New Connection, nodeId = %u\n", nodeId);
