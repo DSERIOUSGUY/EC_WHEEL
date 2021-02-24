@@ -68,13 +68,16 @@ void receivedCallback( uint32_t from, String &msg ) {
     for(int i = 0; i<100; i++)
       {if(digitalRead(ping) == LOW) //gives user time (10s) to respond to the request
         break;  //if so, breaks from the for loop
-      else
-      {
-        return; //else does nothing
-      }
       delay(100);
       }
-   
+      if(digitalRead(ping) == HIGH) //checking if button is pressed
+      {
+    display.clearDisplay();
+    display.setCursor(0,16);
+    display.println("Welcome"); //returning to title screen
+    display.display();
+      return;
+      }
 
    // need to concat this message using the concat function, dont remember, too lazy to search for it :P
    String reply = "The request has been answered by ";
