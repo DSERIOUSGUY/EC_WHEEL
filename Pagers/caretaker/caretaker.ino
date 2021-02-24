@@ -1,7 +1,8 @@
 //------------Header Files------------//
 #include<Adafruit_SSD1306.h>
 #include<painlessMesh.h>
-#include <Wire.h>
+#include <Wire.h> 
+//#include <Arduino_JSON.h>
 //------------OLED Definitions------------//
 #define height 32
 #define width 128
@@ -15,7 +16,7 @@ Adafruit_SSD1306 display(width,height, &Wire, reset);
 Scheduler userScheduler; 
 painlessMesh  mesh;
 uint32_t nodeId;
-String userName = "User A";
+String userName = "User B";
 //------------Misc Definitions------------//
 #define ping 5
 uint8_t postCode = 0;
@@ -45,24 +46,23 @@ void receivedCallback( uint32_t from, String &msg ) {
   display.printf(msg.c_str());
   display.display(); 
   Serial.println(msg.c_str());
-  if(digitalRead(ping) == HIGH)
-  {
-    //checks if node is still connected
-    if(!mesh.isConnected(from))
-    { postCode = 2;
-      return;
-      }
-
-     // need to concat this message using the concat function, dont remember, too lazy to search for it :P
-     String reply = "The request has been answered by ";
-     reply += userName;
-     //letting others know request has been asnwered
-     mesh.sendBroadcast( reply );
-     //letting the requesting personnel know their request has been answered
-     reply = "The request has been answered by ";
-     reply += userName;
-     mesh.sendSingle(from,reply);
+  //checks if node is still connected
+  if(!mesh.isConnected(from))
+  { postCode = 2;
+    return;
     }
+
+  if(msg.substring(0,25) != "Additional help requested"){return;}
+   // need to concat this message using the concat function, dont remember, too lazy to search for it :P
+   String reply = "The request has been answered by ";
+   reply += userName;
+   //letting others know request has been asnwered
+   mesh.sendBroadcast( reply );
+   //letting the requesting personnel know their request has been answered
+   reply = "The answered request from ";
+   reply += userName;
+   mesh.sendSingle(from,reply);
+
 }
 void newConnectionCallback(uint32_t nodeId) {
     Serial.printf("New Connection, nodeId = %u\n", nodeId);
@@ -74,6 +74,7 @@ void nodeTimeAdjustedCallback(int32_t offset) {
     Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(),offset);
 }
 
+#define LED_BUILTIN 2
 
 //------------Setup------------//
 void setup() {
@@ -133,6 +134,7 @@ void setup() {
   taskSendMessage.enable();
   
 }
+
 //------------Loop------------//
 void loop() 
 {
