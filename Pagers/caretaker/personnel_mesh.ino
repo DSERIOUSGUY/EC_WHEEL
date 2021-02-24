@@ -50,7 +50,8 @@ void sendMessage() {
 
 
 // Needed for painless library
-void receivedCallback( uint32_t from, String &msg ) {
+void receivedCallback( uint32_t from, String &msg ) 
+{
   display.clearDisplay();
   display.setCursor(0,0);
   display.printf(msg.c_str());
@@ -58,13 +59,15 @@ void receivedCallback( uint32_t from, String &msg ) {
   Serial.println(msg.c_str());
   //checks if node is still connected
   if(!mesh.isConnected(from))
-  { postCode = 2;
+  { 
+    postCode = 2;
     return;
     }
   //check if the received message is a request
-  if(msg.substring(0,27) == "Additional help requested by")
-  {
-     {int state;
+  
+
+ 
+    int state;
     for(int i = 0; i<1000; i++)
       { state = digitalRead(ping);
         if(digitalRead(ping)==LOW) //gives user time (10s) to respond to the request
@@ -95,9 +98,10 @@ void receivedCallback( uint32_t from, String &msg ) {
     display.setCursor(0,16);
     display.println("reply sent!"); //returning to title screen
     display.display();
+    delay(3000);
    
-  }
-  }
+  
+  
 }
 void newConnectionCallback(uint32_t nodeId) {
     Serial.printf("New Connection, nodeId = %u\n", nodeId);
