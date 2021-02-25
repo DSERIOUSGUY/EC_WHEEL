@@ -17,7 +17,7 @@ Adafruit_SSD1306 display(width,height, &Wire, reset);
 Scheduler userScheduler; 
 painlessMesh  mesh;
 uint32_t nodeId;
-String userName = "User B";
+String userName = "User A";
 //------------Misc Definitions------------//
 #define ping 5
 uint8_t postCode = 0;
@@ -35,22 +35,25 @@ Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
 void sendMessage() {
   if(digitalRead(ping) == LOW)
   {
-  String msg = "Additional help requested by ";
+  String msg = "Request answered by ";
   msg += userName;
   mesh.sendBroadcast( msg );
   Serial.println(msg);
   display.clearDisplay();
   display.setCursor(0,0);
+  delay(3000);
   display.println("Sent request!");
   Serial.println("Sent request!");
    display.display();
+   delay(2000);
   }
   taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 1 ));
 }
 
 
 // Needed for painless library
-void receivedCallback( uint32_t from, String &msg ) {
+void receivedCallback( uint32_t from, String &msg ) 
+{
   display.clearDisplay();
   display.setCursor(0,0);
   display.printf(msg.c_str());
@@ -58,13 +61,15 @@ void receivedCallback( uint32_t from, String &msg ) {
   Serial.println(msg.c_str());
   //checks if node is still connected
   if(!mesh.isConnected(from))
-  { postCode = 2;
+  { 
+    postCode = 2;
     return;
     }
   //check if the received message is a request
-  if(msg.substring(0,27) == "Additional help requested by")
-  {
-     {int state;
+  
+
+ 
+    int state;
     for(int i = 0; i<1000; i++)
       { state = digitalRead(ping);
         if(digitalRead(ping)==LOW) //gives user time (10s) to respond to the request
@@ -76,7 +81,7 @@ void receivedCallback( uint32_t from, String &msg ) {
       {
       display.clearDisplay();
       display.setCursor(0,16);
-      display.println("Welcome"); //returning to title screen
+      display.println("\t EC Wheel"); //returning to title screen
       display.display();
       return;
       }
@@ -87,17 +92,16 @@ void receivedCallback( uint32_t from, String &msg ) {
    //letting others know request has been asnwered
    mesh.sendBroadcast( reply );
    //letting the requesting personnel know their request has been answered
-   reply = "The answered request from ";
-   reply += userName;
-   mesh.sendSingle(from,reply);
+    mesh.sendSingle(from,reply);
    Serial.println("reply sent!");
     display.clearDisplay();
     display.setCursor(0,16);
     display.println("reply sent!"); //returning to title screen
     display.display();
+    delay(3000);
    
-  }
-  }
+  
+  
 }
 void newConnectionCallback(uint32_t nodeId) {
     Serial.printf("New Connection, nodeId = %u\n", nodeId);
@@ -156,10 +160,6 @@ void setup() {
   Serial.print("Node ID: ");
   Serial.println(nodeId);
 
-  display.clearDisplay();
-  display.setCursor(0,16);
-  display.println("Welcome");
-  display.display();
    
   mesh.onReceive(&receivedCallback);
   mesh.onNewConnection(&newConnectionCallback);
@@ -189,6 +189,10 @@ void loop()
       }
       else
       {  
+  display.clearDisplay();
+  display.setCursor(20,16);
+  display.println("\t EC Wheel \t");
+  display.display();      
   mesh.update(); 
       }
 }
