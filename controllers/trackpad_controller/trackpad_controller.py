@@ -1,259 +1,197 @@
-# 2021 ECWHeel©. All rights reserved. 
-
 from controller import Robot
-import numpy as np
-import matplotlib.pyplot as plt
-#The range of sensor when it is most reliable due to the inherent noise
-DISTANCE_UPPER_BOUND = 1.3
-DISTANCE_LOWER_BOUND = 0.7
-RANGE = DISTANCE_UPPER_BOUND - DISTANCE_LOWER_BOUND
+from numpy import inf
+from math import atan, pi
 
-TIME_STEP = 64
-robot = Robot()
+class Wheelchair(Robot):
+    """
+    The main class for the wheelchair controller. Holds the motor control logic, as well as
+    the setup for the controller
 
-wheels = []
-wheels.append(robot.getDevice("leftWheel"))
-wheels.append(robot.getDevice("rightWheel"))
+    Attributes
+    ----------
+    wheels  -- the `Wheel` objects holding the main wheels
+    sensors -- the webots sensor objects on the chair
+    inputs  -- a dictionary of input controllers to use
+    target  -- the target velocity. Of the form (scale, theta), where scale is a value between [0, 1]
+               indicating the desired proportion of max speed and theta is an angle (in radians)
+               indicating the desired bearing of travel [-pi, pi] where positive values are clockwise
+               from straight ahead
 
-#Sensors numbering starts from 0 for the one located on the left facing forward,
-#Each following number corresponds to the next sensor clockwise.
-sensors = []
-sensors.append(robot.getDevice("Sharp's IR sensor GP2D120 FrontLeft"))
-sensors.append(robot.getDevice("Sharp's IR sensor GP2D120 FrontRight"))
-sensors.append(robot.getDevice("Sharp's IR sensor GP2D120 Right"))
-sensors.append(robot.getDevice("Sharp's IR sensor GP2D120 Back"))
-sensors.append(robot.getDevice("Sharp's IR sensor GP2D120 Left"))
+    """
+    class Wheel:
+        """
+        Container class for a wheel
 
-#Measuring real distance to from the sensors with no noise for testing
-distanceFromFrontLeft = robot.getDevice("real distance from Front Left")
-distanceFromFrontLeft.enable(TIME_STEP)
-distanceFromFrontRight = robot.getDevice("real distance from Front Right")
-distanceFromFrontRight.enable(TIME_STEP)
+        Attributes
+        ----------
+        wheel   -- the webots wheel object
+        maxVel  -- the maximum angular velocity of the wheel (in radians)
+        limit   -- the proportion of the maximum velocity that is currently allowed to spin at
+                   ranges between [0, 1]
+        current -- the current proportion of the maximum that the wheel is spinning at
+                   ranges between [-1, 1]
+        """
+        def __init__(self, wheel, maxVel, limit, current=0.0):
+            self.wheel = wheel
+            self.maxVel = maxVel
+            self.limit = limit
 
+            self.setVelocity(current)
 
-#Queue for averaging sensor data
-queue = []
-counter = 0
+            self.wheel.setPosition(float("inf"))
+            self.wheel.setVelocity(self.current)
 
-#Data Collection Variables
-testingArray1 = np.zeros((150, 2))
-testingArray2 = np.zeros((150, 2))
-testingArray3 = np.zeros((150, 1))
-testingArray4 = np.zeros((150, 1))
-count = 0
+        def setVelocity(self, scale):
+            if scale >= 0:
+                self.current = min(scale, self.limit)
+            else:
+                self.current = max(scale, -self.limit)
 
-for i in sensors:
-    i.enable(TIME_STEP)
+        def setLimit(self, limit):
+            self.limit = limit
 
-wheels[0].setPosition(float('inf'))
-wheels[0].setVelocity(0.0)
+        def update(self):
+            self.wheel.setVelocity(self.current)
 
-wheels[1].setPosition(float('inf'))
-wheels[1].setVelocity(0.0)
+    TIME_STEP = 64
+    WHEEL_VEL = 5
 
-leftspeed = 3.0
-rightspeed = 3.0
+    def __init__(self):
+        super().__init__()
 
-mouse = robot.getMouse()
+        self.target = (0, 0)
 
-mouse.enable(TIME_STEP)
+        self.wheels = tuple( Wheelchair.Wheel(self.getDevice(wheel), Wheelchair.WHEEL_VEL, 1.0, 0.0) for wheel in ["leftWheel", "rightWheel"] )
+        self.sensors = tuple( self.getDevice(sensor) for sensor in  [
+            "Sharp's IR sensor GP2D120 FrontLeft",
+            "Sharp's IR sensor GP2D120 FrontRight",
+            "Sharp's IR sensor GP2D120 Right",
+            "Sharp's IR sensor GP2D120 Back",
+            "Sharp's IR sensor GP2D120 Left"   ] )
 
-def trackpad(sensorData):
-    y = 2
-    x = 1
-    #                          ---REIMPLEMENT THIS LATER---
-    #mousestate = mouse.getState() 
-   
-    #x = mousestate.u 
-    #y = -mousestate.v
-    
-    #                                --- END --- 
-    
-    leftspeed = 0.0
-    rightspeed = 0.0
+        self.inputs = { "trackpad": TrackpadInput(self.getMouse(), Wheelchair.TIME_STEP),
+                        "sensor": SensorInput(self.sensors, Wheelchair.TIME_STEP) }
 
-    if y >= -x and y >= x - 1:
-        #Go forward
-        #Checking if sensors have detected obstacles and adjusting the max forward speed
-        mindist = min(sensorData[0], sensorData[1])
-        #Checking the Left sensor facing forwards for if there is an obstacle in the range
-        if (mindist < DISTANCE_UPPER_BOUND and mindist > DISTANCE_LOWER_BOUND):
-            leftspeed = 2.0 * ((mindist - DISTANCE_LOWER_BOUND)/RANGE)
-            rightspeed = 2.0 * ((mindist - DISTANCE_LOWER_BOUND)/RANGE)
-        #If the sensor value is lower then the lower bound,
-        #Wheelchair cannot move forward, only any other direction 
-        elif (mindist <= DISTANCE_LOWER_BOUND):
-            print('YOYOYOYOYO1')
-            leftspeed = 0.0
-            rightspeed = 0.0
+    def setTarget(self, targetVelocity):
+        #do some processing/error detection
+        self.target = targetVelocity
+
+    def setLimits(self, limits):
+        if limits is None:
+            raise Exception("uh oh")
+
+        #also so some processing
+        for limit, wheel in zip(limits, self.wheels):
+            wheel.setLimit(limit)
+
+    def move(self):
+        self.setTarget(self.inputs["trackpad"].getTarget())
+        self.setLimits(self.inputs["sensor"].getLimits(self.target))
+
+        # translate the target into actual motor velocities
+        deadRadius = 0.1
+        r, theta = self.target
+
+        lwheel, rwheel = self.wheels
+
+        print(lwheel.limit)
+        print(rwheel.limit)
+
+        if r < deadRadius:
+            lwheel.setVelocity(0)
+            rwheel.setVelocity(0)
+        elif theta >= -pi/4 and theta < pi/4:
+            lwheel.setVelocity(1)
+            rwheel.setVelocity(1)
+        elif theta >= pi/4 and theta < 3*pi/4:
+            lwheel.setVelocity(-1)
+            rwheel.setVelocity(1)
+        elif theta >= -3*pi/4 and theta < -pi/4:
+            lwheel.setVelocity(1)
+            rwheel.setVelocity(-1)
         else:
-            leftspeed = 2.0
-            rightspeed = 2.0
-            
-        """
-        #Checking the Right sensor facing forward for if there is an obstacle in the range
-        if (sensorData[1] < DISTANCE_UPPER_BOUND and sensorData[1] > DISTANCE_LOWER_BOUND):
-            leftspeed = 2.0 * ((sensorData[1] - DISTANCE_LOWER_BOUND)/RANGE)
-            rightspeed = 2.0 * ((sensorData[1] - DISTANCE_LOWER_BOUND)/RANGE)
-        elif (sensorData[1] < DISTANCE_LOWER_BOUND):
-            print('YOYOYOYOYO2')
-            leftspeed = 0.0
-            rightspeed = 0.0
-        print("forward")
-        """
-    if y < -x and y < x - 1:
-        #Go back
-        leftspeed = -2.0
-        rightspeed = -2.0
-        print("back")        
-                
-    if y < -x and y > x - 1:
-        #turn left
-        leftspeed = 2.0
-        rightspeed = -2.0
-        print("left")    
-        
-                
-    if y > -x and y < x - 1:
-        #turn right
-        leftspeed = -2.0
-        rightspeed = 2.0
-        print("right")
-            
-    
-    if (y+0.5)**2 + (x-0.5)**2 < 0.01:
-        leftspeed = 0 
-        rightspeed = 0
-        print("stop")
-        
-    speed = [leftspeed, rightspeed] 
-    return speed
+            lwheel.setVelocity(-1)
+            rwheel.setVelocity(-1)
 
-#Getting the raw values from the sensors (voltage),
-#And transforming them into meters.    
-def getSensorData():
+        lwheel.update()
+        rwheel.update()
+
+    def go(self):
+        while self.step(Wheelchair.TIME_STEP) != -1:
+            self.move()
+
+class TrackpadInput:
+    def __init__(self, mouse, timestep):
+        self.mouse = mouse
+        self.mouse.enable(timestep)
+
+    def getTarget(self):
+        mousestate = self.mouse.getState()
+
+        # original u, v are [0, 1] from top-left to bottom-right
+        # transform to x, y: [-1, 1] from bottom-left to top-right
+        x = 2 * (mousestate.u - 0.5)
+        y = 2 * (0.5 - mousestate.v)
+
+        # converting to polar coordinates (capping radius at 1)
+        r = min(1, x**2 + y**2)
+
+        # bearing from north, +ve is right
+        if y == 0:
+            if x == 0:
+                theta = 0
+            elif x > 0:
+                theta = pi/2
+            else:
+                theta = -pi/2
+        else:
+            theta = atan(x/y)
+
+            if y < 0:
+                theta += pi if x >= 0 else -pi
+
+        return (r, theta)
+
+class SensorInput:
+    SENSOR_MAX = 1.3
+    SENSOR_MIN = 0.7
+    RANGE = SENSOR_MAX - SENSOR_MIN
 
     def voltageToMetersFormula(x):
         return 1.784*(x**(-0.4215)) - 1.11
 
-    sensorDataInMeters = []
-    for sensor in sensors:
-        sensorDataInMeters.append(voltageToMetersFormula(sensor.getValue()))
+    def __init__(self, sensors, timestep):
+        self.sensors = sensors
+        for sensor in self.sensors:
+            sensor.enable(timestep)
 
-    return sensorDataInMeters
+    def getLimits(self, target):
+        sensorData = self.getSensorData()
+        r, theta = target
 
-def setActuators(speeds):
-    wheels[0].setVelocity(speeds[0])
-    wheels[1].setVelocity(speeds[1])
+        if theta < -pi/4 or theta >= pi/4:
+            #nothing forwards
+            return (1.0, 1.0)
 
-while robot.step(TIME_STEP) != -1:
-    counter += 1
-    print(counter)
-    sensorData = getSensorData()
-    if len(queue) < 5: 
-        leftspeed = 0
-        rightspeed = 0  
-
-        queue.append(sensorData)
-        speeds = trackpad(sensorData)
-        setActuators(speeds)
-    
-    else:
-        averages = np.zeros(len(queue[0]))
-        for i in range(len(averages)):
-            for j in range(len(queue)):
-                averages[i] += queue[j][i]
-            averages[i] = averages[i] / len(queue)
-            sensorData[i] = (sensorData[i] * 0.5) + (averages[i] * 0.5)
-            
-        speeds = trackpad(sensorData)
-        setActuators(speeds)
-        queue.pop(0)
-        queue.append(sensorData)
-    
-
-    #print("Left Wheel Velocity: " + str(wheels[0].getVelocity()))
-    #print("Rigth Wheel Velocity: " + str(wheels[1].getVelocity()))
-    #print("Left Whell Acceleration: " + str(wheels[0].getAcceleration()))
-    #print("Right Wheel Acceleration: " + str(wheels[1].getAcceleration()))
-
-    #### Data Collection for first 300 ticks and Plot making ####
-    
-    #print("Left Sensor Value: " + str(sensorData[0]))
-    #print("Actual Front Left Sensor Distance: " + str(distanceFromFrontLeft.getValue()))
-
-    #print("Right Sensor Value: " + str(sensorData[1]))
-    #print("Actual Front Right Sensor Distance: " + str(distanceFromFrontRight.getValue()))
-
-    arrange = np.arange(0, 150, dtype=np.float32)
-    j = 1
-    while (j < 150):
-        arrange[j] = arrange[j]/64
-        j += 1
-
-    if (count < 150):
-        if (sensorData[0] < 1.3):
-            testingArray1[count][0] = sensorData[0]
-        if (distanceFromFrontLeft.getValue() < 5):
-            testingArray1[count][1] = distanceFromFrontLeft.getValue()
-        if (sensorData[1] < 1.3):
-            testingArray2[count][0] = sensorData[1]
-        if (distanceFromFrontRight.getValue() < 5):
-            testingArray2[count][1] = distanceFromFrontRight.getValue() 
-        if (count == 0):
-            testingArray3[count] = 2.0
-            testingArray4[count] = 2.0
+        #this is the moving forward part
+        if (sensorData[0] <  SensorInput.SENSOR_MAX and sensorData[0] > SensorInput.SENSOR_MIN):
+            return ((sensorData[0] - SensorInput.SENSOR_MIN)/SensorInput.RANGE,
+                    (sensorData[0] - SensorInput.SENSOR_MIN)/SensorInput.RANGE)
+        elif (sensorData[0] < SensorInput.SENSOR_MIN):
+            return (0.0, 0.0)
+        elif (sensorData[1] < SensorInput.SENSOR_MAX and sensorData[1] > SensorInput.SENSOR_MIN):
+            return ((sensorData[1] - SensorInput.SENSOR_MIN)/SensorInput.RANGE,
+                    (sensorData[1] - SensorInput.SENSOR_MIN)/SensorInput.RANGE)
+        elif (sensorData[1] < SensorInput.SENSOR_MIN):
+            return (0.0, 0.0)
         else:
-            testingArray3[count] = wheels[0].getVelocity()
-            testingArray4[count] = wheels[1].getVelocity()
+            return (1.0, 1.0)
 
-        count += 1
+    def getSensorData(self):
+        return [
+            SensorInput.voltageToMetersFormula(sensor.getValue())
+            for sensor in self.sensors
+        ]
 
-    if (count == 150):
-
-        testingArray1[ testingArray1==0 ] = np.nan
-        testingArray2[ testingArray2==0 ] = np.nan
-
-        fig1 = plt.figure()
-        ax = fig1.add_subplot(111)
-
-        ax.set(title="Actual Distance vs FrontLeft Sensor Distance", xlabel="x", ylabel="y")
-        ax.plot(arrange, testingArray1[:,0],   label='Data from FrontLeft sensor')
-        ax.plot(arrange, testingArray1[:,1],   label='Real-world measurements')
-
-        fig, ax = plt.subplots(constrained_layout=True)
-        
-        line1 = ax.plot(arrange, testingArray1[:,0], label='Measured Distance')
-        line1 = ax.plot(arrange, testingArray1[:,1], label='Actual Distance', linestyle='dashed')
-        ax.set(title="Wheel Rotation Speed vs Sensor Measured Distance (Left)", xlabel="Time (s)")
-
-        line3 = ax.plot(arrange, testingArray3, label='Velocity')
-        ax.set_ylabel('Distance (m)', color = 'black')
-        
-        secax = ax.secondary_yaxis('right')
-        secax.set_ylabel('Wheel revolution speed (Rad/s)')
-        secax.set_color('green')
-        #ax[1].set(title="Left Wheel Velocity", xlabel="Time Step", ylabel="Rad/s")
-        ax.legend()
-        plt.savefig("Figure_1.png")
-
-        fig, ax = plt.subplots(constrained_layout=True)
-        
-        line1 = ax.plot(arrange, testingArray2[:,0], label='Measured Distance')
-        line1 = ax.plot(arrange, testingArray2[:,1], label='Actual Distance', linestyle='dashed')
-        ax.set(title="Wheel Rotation Speed vs Sensor Measured Distance (Right)", xlabel="Time (s)")
-
-        line3 = ax.plot(arrange, testingArray4, label='Velocity')
-        ax.set_ylabel('Distance (m)', color = 'black')
-        
-        secax = ax.secondary_yaxis('right')
-        secax.set_ylabel('Wheel revolution speed (Rad/s)')
-        secax.set_color('green')
-        #ax[1].set(title="Left Wheel Velocity", xlabel="Time Step", ylabel="Rad/s")
-        ax.legend()
-        plt.savefig("Figure_2.png")
-        plt.show()
-        
-    
-    
-    
+controller = Wheelchair()
+controller.go()
