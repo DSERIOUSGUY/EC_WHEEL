@@ -1,5 +1,5 @@
 from controller import Robot
-from numpy import inf
+from numpy import inf, zeros
 from math import atan, pi
 
 class Wheelchair(Robot):
@@ -43,9 +43,9 @@ class Wheelchair(Robot):
 
         def setVelocity(self, scale):
             if scale >= 0:
-                self.current = min(scale, self.limit)
+                self.current = min(scale, self.limit) * self.maxVel
             else:
-                self.current = max(scale, -self.limit)
+                self.current = max(scale, -self.limit) * self.maxVel
 
         def setLimit(self, limit):
             self.limit = limit
@@ -54,7 +54,7 @@ class Wheelchair(Robot):
             self.wheel.setVelocity(self.current)
 
     TIME_STEP = 64
-    WHEEL_VEL = 5
+    WHEEL_VEL = 1.5
 
     def __init__(self):
         super().__init__()
@@ -67,7 +67,10 @@ class Wheelchair(Robot):
             "Sharp's IR sensor GP2D120 FrontRight",
             "Sharp's IR sensor GP2D120 Right",
             "Sharp's IR sensor GP2D120 Back",
-            "Sharp's IR sensor GP2D120 Left"   ] )
+            "Sharp's IR sensor GP2D120 Left",
+            "Sharp's IR sensor GP2D120 LedgeDetector"   
+            ] )
+        self.ledgeSensor = self.getDevice("Sharp's IR sensor GP2D120 LedgeDetection")
 
         self.inputs = { "trackpad": TrackpadInput(self.getMouse(), Wheelchair.TIME_STEP),
                         "sensor": SensorInput(self.sensors, Wheelchair.TIME_STEP) }
@@ -157,6 +160,8 @@ class SensorInput:
     SENSOR_MIN = 0.7
     RANGE = SENSOR_MAX - SENSOR_MIN
 
+    queue = []
+
     def voltageToMetersFormula(x):
         return 1.784*(x**(-0.4215)) - 1.11
 
@@ -173,18 +178,29 @@ class SensorInput:
             #nothing forwards
             return (1.0, 1.0)
 
-        #this is the moving forward part
-        if (sensorData[0] <  SensorInput.SENSOR_MAX and sensorData[0] > SensorInput.SENSOR_MIN):
-            return ((sensorData[0] - SensorInput.SENSOR_MIN)/SensorInput.RANGE,
-                    (sensorData[0] - SensorInput.SENSOR_MIN)/SensorInput.RANGE)
-        elif (sensorData[0] < SensorInput.SENSOR_MIN):
-            return (0.0, 0.0)
-        elif (sensorData[1] < SensorInput.SENSOR_MAX and sensorData[1] > SensorInput.SENSOR_MIN):
-            return ((sensorData[1] - SensorInput.SENSOR_MIN)/SensorInput.RANGE,
-                    (sensorData[1] - SensorInput.SENSOR_MIN)/SensorInput.RANGE)
-        elif (sensorData[1] < SensorInput.SENSOR_MIN):
+        if len(SensorInput.queue) < 5:
+            SensorInput.queue.append(sensorData)
+        else:
+            averages = zeros(len(SensorInput.queue[0]))
+            for i in range(len(averages)):
+                for j in range(len(SensorInput.queue)):
+                    averages[i] += SensorInput.queue[j][i]
+                averages[i] = averages[i] / len(SensorInput.queue[j])
+                sensorData[i] = (sensorData[i] * 0.75) + (averages[i] * 0.25)
+
+        mindist = min(sensorData[0], sensorData[1])
+
+            #this is the moving forward part
+        if (mindist < SensorInput.SENSOR_MAX and mindist > SensorInput.SENSOR_MIN):
+            if self.detectLedge(sensorData[5]):
+                return (0.0,0.0)
+            return(2.0 * ((mindist - SensorInput.SENSOR_MIN)/SensorInput.RANGE),
+            2.0 * ((mindist - SensorInput.SENSOR_MIN)/SensorInput.RANGE))
+        elif (mindist < SensorInput.SENSOR_MIN):
             return (0.0, 0.0)
         else:
+            if self.detectLedge(sensorData[5]):
+                return (0.0,0.0)
             return (1.0, 1.0)
 
     def getSensorData(self):
@@ -192,6 +208,10 @@ class SensorInput:
             SensorInput.voltageToMetersFormula(sensor.getValue())
             for sensor in self.sensors
         ]
+
+    def detectLedge(self, ledgeSensor):
+        if not ledgeSensor < 1.00:
+            return True
 
 controller = Wheelchair()
 controller.go()
