@@ -1,7 +1,6 @@
 #VRML_OBJ R2021a utf8
 DEF CHAIR_FULL Robot {
-  translation -0.434537149234602 -0.8347357933980741 3.439849993893543
-  rotation -0.18933099356128305 -0.6254324524312582 -0.7569597230519727 2.680812336697563
+  rotation 0.0005833604992244037 0.7103781542731263 0.703819961085244 -3.1398111643338704
   children [
     Shape {
       geometry IndexedFaceSet {
@@ -32,12 +31,12 @@ DEF CHAIR_FULL Robot {
         }
         DEF CASTER_L HingeJoint {
           jointParameters HingeJointParameters {
-            position -34.50260927333387
+            position -33.31916079857908
             anchor 0.000699043 -0.0329909 -0.088
           }
           endPoint Solid {
-            translation 0.000699043 -0.0329909 -0.088
-            rotation 1 0 0 3.1965025697436515
+            translation 0.0007955265448469362 -0.0334411144173178 -0.08912129411665576
+            rotation -0.9999999891665607 -0.00014241401603770648 -3.7217284745262186e-05 1.9422914925858539
             children [
               Shape {
                 geometry IndexedFaceSet {
@@ -65,11 +64,9 @@ DEF CHAIR_FULL Robot {
               density -1
               mass 0.5
               centerOfMass [
-                0.054319 0.352672 0.055001
+                0 0 0
               ]
             }
-            linearVelocity -0.06285898978006911 0.8455513283704443 0.13064324956629272
-            angularVelocity 2.035404055554986 0.3574755730248234 -1.3340813558515243
           }
         }
       ]
@@ -91,12 +88,12 @@ DEF CHAIR_FULL Robot {
         }
         DEF CASTER_R HingeJoint {
           jointParameters HingeJointParameters {
-            position -33.0092836706099
+            position -32.98164733956882
             anchor -0.000682034 -0.0334107 -0.088
           }
           endPoint Solid {
-            translation -0.000682034 -0.0334107 -0.088
-            rotation 1 0 0 4.689828172467616
+            translation -0.0006288820182813737 -0.0337337836890425 -0.0906096967345249
+            rotation 0.9999999698910624 -1.4100641017908498e-05 0.0002449878495730716 4.68075204643586
             children [
               Shape {
                 geometry IndexedFaceSet {
@@ -124,11 +121,9 @@ DEF CHAIR_FULL Robot {
               density -1
               mass 0.5
               centerOfMass [
-                0.054319 0.352672 0.055001
+                0 0 0
               ]
             }
-            linearVelocity -0.2412976338304586 -0.004702844341659461 -0.37271031158309553
-            angularVelocity 1.228046382748567 0.24818931910390576 -0.7982981377160318
           }
         }
       ]
@@ -191,7 +186,7 @@ DEF CHAIR_FULL Robot {
     }
     DEF WHEEL_R HingeJoint {
       jointParameters HingeJointParameters {
-        position 15.168677312269606
+        position 10.628261564627456
         anchor 9.74784e-07 0.880664 0.286001
       }
       device [
@@ -202,8 +197,8 @@ DEF CHAIR_FULL Robot {
         }
       ]
       endPoint Solid {
-        translation 9.74784e-07 0.880664 0.286001
-        rotation 1 0 0 2.6023066979104335
+        translation -5.407730636619594e-07 0.8806616398406607 0.2859754045858087
+        rotation 0.9999999999999547 3.0101936034475727e-07 -4.156492782810734e-09 4.344828805659071
         children [
           Shape {
             appearance DEF RUBBER PBRAppearance {
@@ -239,16 +234,14 @@ DEF CHAIR_FULL Robot {
           density -1
           mass 1
           centerOfMass [
-            0 0.880664 0.286001
+            0 0 0
           ]
         }
-        linearVelocity -0.012810752828310472 -0.24867029781267805 -0.01232675434770111
-        angularVelocity -0.2253182271267587 0.051492317966527916 0.16624934053234786
       }
     }
     DEF WHEEL_L HingeJoint {
       jointParameters HingeJointParameters {
-        position 10.188000434886385
+        position 10.621364211142364
         anchor 0.659063 0.880664 0.286001
       }
       device [
@@ -259,8 +252,8 @@ DEF CHAIR_FULL Robot {
         }
       ]
       endPoint Solid {
-        translation 0.659063 0.880664 0.286001
-        rotation -1 0 0 2.3783701794727876
+        translation 0.6590629280667475 0.8806578370895604 0.28597171787797143
+        rotation -0.9999999999987942 -1.380820835302861e-06 7.107203129364714e-07 1.945416988558314
         children [
           Shape {
             appearance DEF RUBBER PBRAppearance {
@@ -296,11 +289,9 @@ DEF CHAIR_FULL Robot {
           density -1
           mass 1
           centerOfMass [
-            0.659063 0.880664 0.286001
+            0 0 0
           ]
         }
-        linearVelocity -0.21211556540742407 0.3599421737823698 -0.26128452282958314
-        angularVelocity 0.5827022066051727 0.1608427895178007 -0.3700119053074104
       }
     }
   ]
@@ -329,8 +320,6 @@ DEF CHAIR_FULL Robot {
       0.33 0.555 0.283
     ]
   }
-  controller "trackpad_controller_big_sensors"
+  controller "trackpad_quality"
   supervisor TRUE
-  linearVelocity 0.0728787209027788 -0.015459325795277108 0.07616989014429291
-  angularVelocity -6.952980040762746e-05 0.08197593822524538 0.0167432117762404
 }
