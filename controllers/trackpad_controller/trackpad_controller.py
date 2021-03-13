@@ -61,6 +61,7 @@ class Wheelchair(Robot):
 
     def __init__(self):
         super().__init__()
+        global speedMemory
 
         self.target = (0, 0)
 
@@ -92,34 +93,76 @@ class Wheelchair(Robot):
             wheel.setLimit(limit)
 
     def move(self):
+        global speedMemory
+        global cruiseControlFlag
+        global lastClickState
+        global lastClickStates
+
         # get the target velocity from the trackpad and the maximum allowed speed from the sensors
         self.setTarget(self.inputs["trackpad"].getTarget())
         self.setLimits(self.inputs["sensor"].getLimits(self.target))
 
         # translate the target into actual motor velocities
         deadRadius = 0.1
-        r, theta = self.target # target in terms of both distance from center and angle from north
+        r, theta, leftClick = self.target # target in terms of both distance from center and angle from north
+
+        lwheel_mem, rwheel_mem = speedMemory
 
         lwheel, rwheel = self.wheels
 
-        print(lwheel.limit)
-        print(rwheel.limit)
+        #print(lwheel.limit)
+        #print(rwheel.limit)
 
-        if r < deadRadius: # Center of trackpad
-            lwheel.setVelocity(0)
-            rwheel.setVelocity(0)
-        elif theta >= -pi/4 and theta < pi/4: # Going Forwards
-            lwheel.setVelocity(1)
-            rwheel.setVelocity(1)
-        elif theta >= pi/4 and theta < 3*pi/4: # Going Right
-            lwheel.setVelocity(-1)
-            rwheel.setVelocity(1)
-        elif theta >= -3*pi/4 and theta < -pi/4: # Going Left
-            lwheel.setVelocity(1)
-            rwheel.setVelocity(-1)
-        else: # Going Backwards
-            lwheel.setVelocity(-1)
-            rwheel.setVelocity(-1)
+        #print(leftClick)
+
+
+        if not lastClickState == cruiseControlFlag:
+            if leftClick:
+                if cruiseControlFlag:
+                    cruiseControlFlag = False
+                else:
+                    cruiseControlFlag = True
+
+        print(cruiseControlFlag)
+        lastClickState = leftClick
+
+        
+
+
+        if cruiseControlFlag and r < deadRadius:
+            lwheel.setVelocity(lwheel_mem)
+            rwheel.setVelocity(rwheel_mem)
+
+        else:
+
+            if r < deadRadius: # Center of trackpad
+                lwheel.setVelocity(0)
+                rwheel.setVelocity(0)
+            elif theta >= -pi/4 and theta < pi/4: # Going Forwards
+                cruiseControlFlag = False
+
+                lwheel.setVelocity(1)
+                rwheel.setVelocity(1)
+
+                speedMemory = (lwheel.current, rwheel.current)
+
+                lwheel.update()
+                rwheel.update()
+
+                return
+
+            elif theta >= pi/4 and theta < 3*pi/4: # Going Right
+                cruiseControlFlag = False
+                lwheel.setVelocity(0)
+                rwheel.setVelocity(1)
+            elif theta >= -3*pi/4 and theta < -pi/4: # Going Left
+                cruiseControlFlag = False
+                lwheel.setVelocity(1)
+                rwheel.setVelocity(0)
+            else: # Going Backwards
+                cruiseControlFlag = False
+                lwheel.setVelocity(-1)
+                rwheel.setVelocity(-1)
 
 
         lwheel.update()
@@ -141,10 +184,29 @@ class TrackpadInput:
     def getTarget(self):
         mousestate = self.mouse.getState()
 
+        """""
+        Approaches = ->
+            for top right 
+            u -> 1
+            v -> 0
+
+            for top left 
+            u -> 0
+            v -> 0
+
+            for right 
+            u -> 1
+            v -> 1/2
+
+            for left 
+            u -> 0
+            v -> 1/2
+        """
         # original u, v are [0, 1] from top-left to bottom-right
         # transform to x, y: [-1, 1] from bottom-left to top-right
         x = 2 * (mousestate.u - 0.5)
         y = 2 * (0.5 - mousestate.v)
+        leftClick = mousestate.left
 
         # converting to polar coordinates (capping radius at 1)
         r = min(1, x**2 + y**2)
@@ -163,7 +225,7 @@ class TrackpadInput:
             if y < 0:
                 theta += pi if x >= 0 else -pi
 
-        return (r, theta)
+        return (r, theta, leftClick)
 
 class SensorInput:
 
@@ -200,7 +262,7 @@ class SensorInput:
     # Returns the ratio of max speed that the wheelchair should be limited to
     def getLimits(self, target):
         sensorData = self.getSensorData()
-        r , theta = target
+        r , theta, leftClick = target
 
         deadRadius = 0.1
 
@@ -290,7 +352,7 @@ class SensorInput:
             for sensor in self.sensors
         ]
     
-    # If there is nothing detected by the sensor, return True
+    # Returns True if a ledge has been detected, False otherwise
     def detectLedge(self, ledgeSensor):
         if not ledgeSensor < 1.00:
             return True
@@ -299,6 +361,14 @@ class SensorInput:
     def pop_queue(self, sensorData):
         self.queue.pop(0)
         self.queue.append(sensorData)
+
+speedMemory = (1.0,1.0)
+
+cruiseControlFlag = False
+lastClickState = False
+
+lastClickStates = []
+
 
 controller = Wheelchair()
 controller.go()
