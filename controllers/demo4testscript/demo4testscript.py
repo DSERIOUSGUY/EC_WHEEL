@@ -54,8 +54,8 @@ class Monitor(Supervisor):
     def go(self):
         while self.step(self.TIME_STEP) != -1:
             self.screen.blit(self.background, (0, 0))
-            pygame.draw.rect(self.screen, pygame.Color("green"),(5,5,130,50))
-            text = self.smallText.render('Dismiss', True, (191,)*3)
+            pygame.draw.rect(self.screen, pygame.Color("red"),(5,5,130,50))
+            text = self.smallText.render('Dismiss', True, pygame.Color("white"))
             self.screen.blit(text, text.get_rect(center=(70,30)))
             can_see = self.get_can_see()
             for node in self.nodes:
