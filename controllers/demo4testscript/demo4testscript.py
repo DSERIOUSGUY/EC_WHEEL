@@ -14,6 +14,7 @@ class Monitor(Supervisor):
         self.TIME_STEP = timestep
         main_dir = os.path.split(os.path.abspath(__file__))[0]
         self.background = pygame.image.load(os.path.join(main_dir, "home.png")).convert()
+        self.smallText = pygame.font.Font("freesansbold.ttf",20)
         
         
     def init_mesh(self, num_of_nodes):
@@ -23,7 +24,7 @@ class Monitor(Supervisor):
             
     def init_display(self):
         pygame.init()
-
+        pygame.font.init()
         pygame.display.set_caption("Wheelchair Monitor")
         self.screen = pygame.display.set_mode((750, 550))
         
@@ -53,6 +54,9 @@ class Monitor(Supervisor):
     def go(self):
         while self.step(self.TIME_STEP) != -1:
             self.screen.blit(self.background, (0, 0))
+            pygame.draw.rect(self.screen, pygame.Color("green"),(5,5,130,50))
+            text = self.smallText.render('Dismiss', True, (191,)*3)
+            self.screen.blit(text, text.get_rect(center=(70,30)))
             can_see = self.get_can_see()
             for node in self.nodes:
                 # print()

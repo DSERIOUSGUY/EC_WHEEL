@@ -240,7 +240,7 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 DEF CHAIR_FULL Robot {
-  translation 7.03998 0.288216 -5.28994
+  translation 5.35998 0.288216 -0.299952
   rotation -2.0959199999999998e-16 0.9999999999999999 -2.18557e-08 3.1415853071795863
   children [
     DEF SMALL_WHEEL_001 Transform {
