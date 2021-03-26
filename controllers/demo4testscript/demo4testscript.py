@@ -1,80 +1,86 @@
-from controller import Robot, Supervisor
-import os
+from controller import Supervisor
 import numpy as np
-import pygame
+from math import pi
 
-class Monitor(Supervisor):
-    def __init__(self, num_of_nodes, threshold, timestep):
+from parts.monitor import Monitor
+from parts.trackpad import TrackpadInput
+from parts.wheel import Wheel
+
+class Wheelchair(Supervisor):
+    """
+    The main class for the wheelchair controller. Holds the motor control logic, as well as
+    the setup for the controller
+
+    Attributes
+    ----------
+    wheels  -- the `Wheel` objects holding the main wheels
+    sensors -- the webots sensor objects on the chair
+    inputs  -- a dictionary of input controllers to use
+    target  -- the target velocity. Of the form (scale, theta), where scale is a value between [0, 1]
+               indicating the desired proportion of max speed and theta is an angle (in radians)
+               indicating the desired bearing of travel [-pi, pi] where positive values are clockwise
+               from straight ahead
+
+    """
+    TIME_STEP = 64
+    WHEEL_VEL = 5
+
+    def __init__(self):
         super().__init__()
-        self.nodes = []
-        self.init_mesh(num_of_nodes)
-        self.init_display()
-        self.threshold = threshold
-        self.wheelchair = self.getFromDef("CHAIR_FULL")
-        self.TIME_STEP = timestep
-        main_dir = os.path.split(os.path.abspath(__file__))[0]
-        self.background = pygame.image.load(os.path.join(main_dir, "home.png")).convert()
-        self.smallText = pygame.font.Font("freesansbold.ttf",20)
-        
-        
-    def init_mesh(self, num_of_nodes):
-        for i in range(1, num_of_nodes+1):
-            self.nodes.append(self.getFromDef("esp%d" % i))
-            print(self.nodes[i-1].getDef())
-            
-    def init_display(self):
-        pygame.init()
-        pygame.font.init()
-        pygame.display.set_caption("Wheelchair Monitor")
-        self.screen = pygame.display.set_mode((750, 550))
-        
-            
-    def dist_bet_nodes(self, node1, node2):
-        return np.linalg.norm(np.array(node1.getPosition()) - np.array(node2.getPosition()))
+        self.target = (0, 0)
 
-    def get_can_see(self):
-        can_see = []
-        for node in self.nodes:
-            if (self.dist_bet_nodes(node, self.wheelchair) < self.threshold):
-                can_see.append(node)
-                print(node.getDef())
-        return can_see
-    
-    def show_input(x, y):
-        size = 4
-        self.cursor.update(x-(size/2), y-(size/2), size, size)
-        colour = pygame.Color("#FAFAFC")
-    
-        self.window_surface.fill(pygame.Color("#000000"))
-        pygame.draw.rect(self.window_surface, colour, self.cursor)
-        pygame.display.flip()
+        self.wheels = tuple( Wheel(self.getDevice(wheel), Wheelchair.WHEEL_VEL, 1.0, 0.0) for wheel in ["leftWheel", "rightWheel"] )
 
-        print(x, y)
-    
+        self.inputs = { "trackpad": TrackpadInput(self.getMouse(), Wheelchair.TIME_STEP), }
+
+        print(self.getSelf())
+        self.monitor = Monitor(8, 4, 64, self.getSelf(), self.getFromDef)
+
+    def setTarget(self, targetVelocity):
+        #do some processing/error detection
+        self.target = targetVelocity
+
+    def setLimits(self, limits):
+        if limits is None:
+            raise Exception("uh oh")
+
+        #also so some processing
+        for limit, wheel in zip(limits, self.wheels):
+            wheel.setLimit(limit)
+
+    def move(self):
+        self.setTarget(self.inputs["trackpad"].getTarget())
+        #self.setLimits(self.inputs["sensor"].getLimits(self.target))
+
+        # translate the target into actual motor velocities
+        deadRadius = 0.1
+        r, theta = self.target
+
+        lwheel, rwheel = self.wheels
+
+        if r < deadRadius:
+            lwheel.setVelocity(0)
+            rwheel.setVelocity(0)
+        elif theta >= -pi/4 and theta < pi/4:
+            lwheel.setVelocity(1)
+            rwheel.setVelocity(1)
+        elif theta >= pi/4 and theta < 3*pi/4:
+            lwheel.setVelocity(1)
+            rwheel.setVelocity(-1)
+        elif theta >= -3*pi/4 and theta < -pi/4:
+            lwheel.setVelocity(-1)
+            rwheel.setVelocity(1)
+        else:
+            lwheel.setVelocity(-1)
+            rwheel.setVelocity(-1)
+
+        lwheel.update()
+        rwheel.update()
+
     def go(self):
-        while self.step(self.TIME_STEP) != -1:
-            self.screen.blit(self.background, (0, 0))
-            pygame.draw.rect(self.screen, pygame.Color("red"),(5,5,130,50))
-            text = self.smallText.render('Dismiss', True, pygame.Color("white"))
-            self.screen.blit(text, text.get_rect(center=(70,30)))
-            can_see = self.get_can_see()
-            for node in self.nodes:
-                # print()
-                # print(node.getDef())
-                # print(node.getPosition())
-                pos = (node.getPosition()[0] * 47 + 375, node.getPosition()[2] * 35 + 275)
-                # print(pos)
-                
-                col = "black"
-                if node in can_see:
-                    # print("seen")
-                    col = "red"
-                pygame.draw.circle(self.screen, pygame.Color(col), pos, 10)
-            pygame.display.flip()
+        while self.step(Wheelchair.TIME_STEP) != -1:
+            self.move()
+            self.monitor.update_view()
 
-mon = Monitor(8, 4, 64)
-
-mon.go()
-    
-
-
+controller = Wheelchair()
+controller.go()
