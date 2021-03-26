@@ -4,8 +4,8 @@ WorldInfo {
   coordinateSystem "NUE"
 }
 Viewpoint {
-  orientation -0.01833649707853292 0.8590906151056115 0.5114949539461274 3.081511367428822
-  position -0.05536169491102383 21.72055086909614 -12.437397660431143
+  orientation -0.24130219372101172 -0.9074503953860676 -0.3439578916366025 2.0055488282234886
+  position -30.72638133649105 29.077406946921908 -3.647219161591428
 }
 Floor {
   size 100 100
@@ -15,16 +15,17 @@ Floor {
     }
     texture ImageTexture {
       url [
-        "/Users/andrewscollin/Projects/SDP/image (5).png"
+        "/home/sami/uni/EC_WHEEL/controllers/demo4testscript/home.png"
       ]
     }
     textureTransform TextureTransform {
-      scale 0.05 0.05
-      translation -1 -1
+      scale 0.0587 0.061
+      translation -7.6 -9.1
     }
   }
 }
 Robot {
+  translation 0 -1.16 0
   children [
     Shape {
       appearance PBRAppearance {
@@ -114,124 +115,166 @@ Transform {
       translation 0.2 0 7.23
       name "wall(1)"
       size 15.5 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation 8.04 0 -1.16319e-06
       rotation 0 1 0 -1.5707953071795862
       name "wall(2)"
       size 14.8 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -5.59 0 -3.97999
       rotation 0 -1 0 -5.307179586466759e-06
       name "wall(20)"
       size 1.5 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -5.59 0 -3.97999
       rotation 0 -1 0 -5.307179586466759e-06
       name "wall(13)"
       size 1.5 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -6.94 0 0.610008
       rotation 0 -1 0 -5.307179586466759e-06
       name "wall(11)"
       size 1.2 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -4.76 0 -4.58
       rotation 0 1 0 1.5708
       name "wall(10)"
       size 5.3 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation 5.94 0 5.14
       rotation 0 1 0 -3.1415853071795863
       name "wall(16)"
       size 4.1 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation 5.94 0 0.7
       rotation 0 1 0 -3.1415853071795863
       name "wall(15)"
       size 4.1 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -5.39 0 0.72
       rotation 0 1 0 -3.1415853071795863
       name "wall(19)"
       size 4.1 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -5.39 0 5.11
       rotation 0 1 0 -3.1415853071795863
       name "wall(18)"
       size 4.1 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -5.39 0 2.84
       rotation 0 1 0 -3.1415853071795863
       name "wall(17)"
       size 4.1 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation 5.94 0 2.84
       rotation 0 1 0 -3.1415853071795863
       name "wall(14)"
       size 4.1 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -6.31 0 -1.69
       rotation 0 1 0 1.5708
       name "wall(12)"
       size 4.8 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -7.44 0 3.94
       rotation 0 1 0 1.5708
       name "wall(9)"
       size 6.6 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation 5.03 0 -4.58
       rotation 0 1 0 1.5708
       name "wall(8)"
       size 5.3 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation 3.38 0 -4.58
       rotation 0 1 0 1.5708
       name "wall(7)"
       size 5.3 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation 0.2 0 -4.58
       rotation 0 1 0 1.5708
       name "wall(6)"
       size 5.3 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -1.5 0 -4.58
       rotation 0 1 0 1.5708
       name "wall(5)"
       size 5.3 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation -3.11 0 -4.58
       rotation 0 1 0 1.5708
       name "wall(4)"
       size 5.3 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation 1.8 0 -4.58
       rotation 0 1 0 1.5708
       name "wall(3)"
       size 5.3 2.4 0.2
+      appearance RedBricks {
+      }
     }
     Wall {
       translation 1.61 0 -7.33
       size 13 2.4 0.2
+      appearance RedBricks {
+      }
     }
   ]
 }
@@ -240,8 +283,8 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 DEF CHAIR_FULL Robot {
-  translation 7.03998 0.288216 -5.28994
-  rotation -2.0959199999999998e-16 0.9999999999999999 -2.18557e-08 3.1415853071795863
+  translation -2.49111506094419 0.19093295103260782 5.753139259790758
+  rotation -0.0015820000881811896 -0.9999975445156133 -0.0015518500137511595 -0.9278219562025747
   children [
     DEF SMALL_WHEEL_001 Transform {
       translation -0.0004 -0.0006 0.00444
@@ -289,6 +332,7 @@ DEF CHAIR_FULL Robot {
     }
     HingeJoint {
       jointParameters HingeJointParameters {
+        position 64.47121135082118
         axis 0 0 1
         anchor 0.367 0.088 0
       }
@@ -300,8 +344,8 @@ DEF CHAIR_FULL Robot {
         }
       ]
       endPoint DEF WHEEL_001 Solid {
-        translation 0.3670051366218023 0.08868622492349348 -0.050014392541886596
-        rotation -0.5773238212501056 0.5773475460730325 0.5773794388966617 2.0944547036351158
+        translation 0.36631503542674254 0.08795811248527971 -0.050014392541886596
+        rotation -0.7068944931213481 -0.024227988962594354 0.7069039398288433 3.1901532822854652
         children [
           Shape {
             appearance Appearance {
@@ -338,6 +382,7 @@ DEF CHAIR_FULL Robot {
     }
     HingeJoint {
       jointParameters HingeJointParameters {
+        position 65.05454827450453
         axis 0 0 1
         anchor 0.367 0.088 0
       }
@@ -349,8 +394,8 @@ DEF CHAIR_FULL Robot {
         }
       ]
       endPoint DEF WHEEL Solid {
-        translation 0.368584344597924 0.08921860112691289 0.6009571128466639
-        rotation -0.5772548109569118 -0.577570806351608 -0.5772251266858137 2.0940351155005827
+        translation 0.3650700764388562 0.08852012648425783 0.6009571128466641
+        rotation 0.3051762940459187 -0.9020604532104896 0.30521200550778677 1.6737111434878145
         children [
           Shape {
             appearance Appearance {
@@ -384,17 +429,7 @@ DEF CHAIR_FULL Robot {
       }
     }
     Shape {
-      appearance Appearance {
-        material Material {
-        }
-        texture ImageTexture {
-          url [
-            "textures/carpet.jpg"
-          ]
-        }
-        textureTransform TextureTransform {
-          scale -9 1
-        }
+      appearance Leather {
       }
       geometry IndexedFaceSet {
         coord DEF COORDS_ME_CHAIR_FULL Coordinate {
@@ -420,7 +455,8 @@ DEF CHAIR_FULL Robot {
   physics Physics {
     mass 2
   }
-  controller ""
+  controller "demo4testscript"
+  supervisor TRUE
 }
 DEF esp1 SolidBox {
   translation 0 1 7.13
