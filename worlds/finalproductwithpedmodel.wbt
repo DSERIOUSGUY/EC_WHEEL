@@ -5,7 +5,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation -0.368287285500568 0.9037410502672496 0.21821225767694996 1.2494616091415949
-  position -16.708731413860345 1.8753347698838663 15.34511143572756
+  position -13.705643423289446 3.6878871545372127 16.648923061644375
 }
 Floor {
   size 100 100
@@ -35,37 +35,37 @@ DEF CHAIR_FULL Robot {
     SharpGP2Y0A02YK0F {
       translation 0.320001 0.65 0.31
       rotation 0.5773502691844296 0.5773472691830309 -0.5773532691858283 -2.094395307179586
-      name "Sharp's IR sensor GP2Y0A02YK0F Back"
+      name "Back"
     }
     SharpGP2Y0A02YK0F {
       translation 0.640001 0.41 0.32
       rotation -0.9999999999831388 5.189899999912492e-06 2.6052599999560725e-06 1.5708
-      name "Sharp's IR sensor GP2Y0A02YK0F Left"
+      name "Left"
     }
     SharpGP2Y0A02YK0F {
       translation 0.0100002 0.38 0.32
       rotation -1.83880943097924e-06 0.7071067811853522 -0.7071067811853522 -3.1415853071795863
-      name "Sharp's IR sensor GP2Y0A02YK0F Right"
+      name "Right"
     }
     SharpGP2Y0A02YK0F {
       translation 0.35 0.42 0.14
       rotation -0.5773509358537164 0.5773519358536053 -0.5773479358540498 2.0944
-      name "Sharp's IR sensor GP2Y0A02YK0F Front"
+      name "Front"
     }
     SharpGP2Y0A02YK0F {
       translation 0.65 0.38 0.3
       rotation -0.5773509358537164 0.5773519358536053 -0.5773479358540498 2.0944
-      name "Sharp's IR sensor GP2Y0A02YK0F FrontLeft"
+      name "FrontLeft"
     }
     SharpGP2Y0A02YK0F {
       translation 0.37 0.408977 0.167764
       rotation -0.5199879735042735 0.6776629654700234 -0.5199859735043754 1.95045
-      name "Sharp's IR sensor GP2Y0A02YK0F LedgeDetector"
+      name "LedgeDetector"
     }
     SharpGP2Y0A02YK0F {
       translation 0.03 0.38 0.3
       rotation -0.5773509358537164 0.5773519358536053 -0.5773479358540498 2.0944
-      name "Sharp's IR sensor GP2Y0A02YK0F FrontRight"
+      name "FrontRight"
     }
     Shape {
       appearance PBRAppearance {
@@ -114,7 +114,7 @@ DEF CHAIR_FULL Robot {
           }
           endPoint Solid {
             translation 0.0007955265448469362 -0.0334411144173178 -0.08912129411665576
-            rotation -0.9999999891665609 -0.00014241401603752512 -3.721728474521485e-05 1.9422914925858081
+            rotation -0.9999999891665609 -0.00014241401603754214 -3.721728474521908e-05 1.94229149258582
             children [
               Shape {
                 appearance PBRAppearance {
@@ -184,8 +184,8 @@ DEF CHAIR_FULL Robot {
             anchor -0.000682034 -0.0334107 -0.088
           }
           endPoint Solid {
-            translation -0.0006288820182813737 -0.03373378368904249 -0.0906096967345249
-            rotation 0.9999999698910623 -1.4100641017886077e-05 0.00024498784957268315 4.6807520464358845
+            translation -0.0006288820182813737 -0.0337337836890425 -0.0906096967345249
+            rotation 0.9999999698910623 -1.4100641017894754e-05 0.00024498784957283223 4.6807520464358845
             children [
               Shape {
                 appearance PBRAppearance {
@@ -301,8 +301,8 @@ DEF CHAIR_FULL Robot {
         }
       ]
       endPoint Solid {
-        translation -5.407730636620356e-07 0.8806616398406607 0.2859754045858087
-        rotation 0.9999999999999546 3.01019345040788e-07 -4.156492571492698e-09 4.344828805671633
+        translation -5.407730636621e-07 0.8806616398406607 0.2859754045858087
+        rotation 0.9999999999999547 3.0101934939109565e-07 -4.1564926315621805e-09 4.344828805668044
         children [
           Shape {
             appearance DEF RUBBER PBRAppearance {
@@ -357,7 +357,7 @@ DEF CHAIR_FULL Robot {
       ]
       endPoint Solid {
         translation 0.6590629280667475 0.8806578370895605 0.28597171787797143
-        rotation -0.9999999999987941 -1.380820820788003e-06 7.107203054655506e-07 1.9454169885539876
+        rotation -0.9999999999987942 -1.3808208208054346e-06 7.10720305474521e-07 1.9454169885539874
         children [
           Shape {
             appearance DEF RUBBER PBRAppearance {
@@ -399,7 +399,7 @@ DEF CHAIR_FULL Robot {
       }
     }
   ]
-  name "robot(2)"
+  name "robot(1)"
   boundingObject DEF BOUNDING Transform {
     translation 0.324741 0.653322 0.307808
     scale 0.304633 0.284676 0.191904
@@ -425,7 +425,7 @@ DEF CHAIR_FULL Robot {
       0.33 0.555 0.283
     ]
   }
-  controller "trackpad_controller"
+  controller "normal"
   supervisor TRUE
 }
 Robot {
