@@ -3,11 +3,7 @@
 #include<painlessMesh.h>
 #include <Wire.h> 
 //#include <Arduino_JSON.h>
-//------------OLED Definitions------------//
-#define height 32
-#define width 128
-#define reset 4
-Adafruit_SSD1306 display(width,height, &Wire, reset);
+
 //------------Mesh Definitions------------//
 #define   MESH_PREFIX     "testMesh"
 #define   MESH_PASSWORD   "password"
@@ -19,6 +15,8 @@ uint32_t nodeId;
 String userName = "User B";
 //------------Misc Definitions------------//
 #define ping 5
+#define normal 6
+#define urgent 7
 uint8_t postCode = 0;
 /*postCode defs :
  * 1 - OLED not able to initialize
@@ -26,43 +24,31 @@ uint8_t postCode = 0;
 */
 
 // User stub
-void sendMessage() ; // Prototype so PlatformIO doesn't complain
-Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
-void sendMessage() {
-  if(digitalRead(ping) == HIGH)
+void sendHelpRequestMessage() ; // Prototype so PlatformIO doesn't complain
+Task taskSendHelpRequestMessage( TASK_SECOND * 1 , 1, &sendHelpRequestMessage );
+void sendHelpRequestMessage() {
+  if(digitalRead(normal) == HIGH)
   {
-  String msg = "Additional help requested by ";
-  msg += userName;
+  String msg = "Help requested";
   mesh.sendBroadcast( msg );
   }
-  taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));
+}
+
+// User stub
+void sendUrgentHelpRequestMessage() ; // Prototype so PlatformIO doesn't complain
+Task taskSendUrgentHelpRequestMessage( TASK_SECOND * 1 , 1, &sendHelpRequestMessage );
+void sendUrgentHelpRequestMessage() {
+  if(digitalRead(urgent) == HIGH)
+  {
+  String msg = "URGENT Help requested";
+  mesh.sendBroadcast( msg );
+  }
 }
 
 
 // Needed for painless library
-void receivedCallback( uint32_t from, String &msg ) {
-  display.clearDisplay();
-  display.setCursor(0,0);
-  display.printf(msg.c_str());
-  display.display(); 
+void receivedCallback( uint32_t from, String &msg ) { 
   Serial.println(msg.c_str());
-  //checks if node is still connected
-  if(!mesh.isConnected(from))
-  { postCode = 2;
-    return;
-    }
-
-  if(msg.substring(0,25) != "Additional help requested"){return;}
-   // need to concat this message using the concat function, dont remember, too lazy to search for it :P
-   String reply = "The request has been answered by ";
-   reply += userName;
-   //letting others know request has been asnwered
-   mesh.sendBroadcast( reply );
-   //letting the requesting personnel know their request has been answered
-   reply = "The answered request from ";
-   reply += userName;
-   mesh.sendSingle(from,reply);
-
 }
 void newConnectionCallback(uint32_t nodeId) {
     Serial.printf("New Connection, nodeId = %u\n", nodeId);
@@ -82,56 +68,28 @@ void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(ping, INPUT);
-
-  //checking for oled 
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
-  {
-    Serial.println("Didn't load display\n");
-    postCode = 1;
-    return;
-  } 
+  pinMode(normal, INPUT);
+  pinMode(urgent, INPUT);
   
-  Serial.println("Loaded display\n");
-  
-  
-  display.clearDisplay();
-  display.display();
+  Serial.println("setup \n");
   
   //setting oled parameters
-  
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0,10);
-  display.println("Booting up");
-  display.display();
-  display.setCursor(0,18);
-  for(int i = 0; i<20; i++)
-  {
-    display.print("|");
-    display.display();
-    delay(100);
-    }
 
   
   mesh.setDebugMsgTypes( ERROR | STARTUP );  // set before init() so that you can see startup messages
   nodeId = mesh.getNodeId();
   mesh.init( MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT );
   
-  //nodeId is only for debugging purposes and as a result not required to be displayed on screen
+  //nodeId is only for debugging purposes
   Serial.print("Node ID: ");
   Serial.println(nodeId);
-
-  display.clearDisplay();
-  display.setCursor(0,16);
-  display.println("Welcome");
-  display.display();
    
   mesh.onReceive(&receivedCallback);
   mesh.onNewConnection(&newConnectionCallback);
   mesh.onChangedConnections(&changedConnectionCallback);
   mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
-  userScheduler.addTask( taskSendMessage );
-  taskSendMessage.enable();
+  userScheduler.addTask( taskSendHelpRequestMessage );
+  userScheduler.addTask( taskSendUrgentHelpRequestMessage );
   
 }
 
@@ -156,6 +114,13 @@ void loop()
       }
       else
       {
-  mesh.update(); 
+
+      if (digitalRead(urgent) == HIGH) {
+          taskSendUrgentHelpRequestMessage.enable();
+      } else if (digitalRead(normal) == HIGH) {
+          taskSendHelpRequestMessage.enable();
+      }
+        
+      mesh.update(); 
       }
 }
